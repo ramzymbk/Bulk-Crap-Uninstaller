@@ -59,6 +59,28 @@ namespace Klocman.Forms.Tools
 
         private static bool UseFallback => SystemInformation.HighContrast;
 
+        protected override void Initialize(ToolStrip toolStrip)
+        {
+            base.Initialize(toolStrip);
+
+            if (UseFallback || toolStrip is not ToolStripDropDownMenu dropDown) return;
+
+            // Give menus more room around their items, and round their corners on Windows 11
+            dropDown.Padding = new Padding(dropDown.Padding.Left, 4, dropDown.Padding.Right, 4);
+            if (dropDown.IsHandleCreated)
+                ModernStyleController.SetRoundedCorners(dropDown.Handle, true);
+            else
+                dropDown.HandleCreated += (sender, args) => ModernStyleController.SetRoundedCorners(dropDown.Handle, true);
+        }
+
+        protected override void InitializeItem(ToolStripItem item)
+        {
+            base.InitializeItem(item);
+
+            if (!UseFallback && item is ToolStripMenuItem { IsOnDropDown: true })
+                item.Padding = new Padding(item.Padding.Left, 4, item.Padding.Right, 4);
+        }
+
         protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
         {
             if (UseFallback)

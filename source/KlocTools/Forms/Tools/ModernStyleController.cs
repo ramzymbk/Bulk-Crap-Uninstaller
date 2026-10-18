@@ -68,6 +68,11 @@ namespace Klocman.Forms.Tools
                         AddButton(button);
                         break;
 
+                    case ComboBox { DropDownStyle: ComboBoxStyle.DropDownList } comboBox:
+                        var comboBoxPainter = new ModernComboBoxPainter(comboBox);
+                        _targets.Add(x => comboBoxPainter.Enabled = x);
+                        break;
+
                     case SearchBox searchBox:
                         AddSearchBox(searchBox);
                         break;
@@ -426,6 +431,20 @@ namespace Klocman.Forms.Tools
             return control?.BackColor ?? ModernColorTable.Background;
         }
 
+        /// <summary>
+        ///     Give a popup window, like a menu or a drop down list, small rounded corners.
+        ///     Only has an effect on Windows 11.
+        /// </summary>
+        internal static void SetRoundedCorners(IntPtr handle, bool round)
+        {
+            if (handle == IntPtr.Zero || Environment.OSVersion.Version.Build < 22000)
+                return;
+
+            var cornerPreference = round ? NativeMethods.DWMWCP_ROUNDSMALL : NativeMethods.DWMWCP_DEFAULT;
+            NativeMethods.DwmSetWindowAttribute(handle, NativeMethods.DWMWA_WINDOW_CORNER_PREFERENCE,
+                ref cornerPreference, sizeof(int));
+        }
+
         private void ApplyWindowFrameStyle()
         {
             // Mica backdrop and rounded corners are only available on Windows 11 22H2 and newer
@@ -448,6 +467,7 @@ namespace Klocman.Forms.Tools
 
             public const int DWMWCP_DEFAULT = 0;
             public const int DWMWCP_ROUND = 2;
+            public const int DWMWCP_ROUNDSMALL = 3;
 
             public const int DWMSBT_AUTO = 0;
             public const int DWMSBT_MAINWINDOW = 2;
